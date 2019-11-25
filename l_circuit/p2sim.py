@@ -1026,7 +1026,8 @@ def main():
             print("(*Just give us extra credit, pls :)*) ")
         elif (selection == 4):
             break
-    csv_name = "f_csv_" + cktFile + "_b" + str(batch) + ".csv"
+    cktFile = cktFile.split('.')
+    csv_name = "f_csv_" + cktFile[0] + "_b" + str(batch) + ".csv"
     csvFile = open(csv_name, "w")
 
     tvA = []
