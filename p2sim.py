@@ -802,27 +802,36 @@ def sa_Fault_Simulator(flist, circuit, line, newCircuit, output):
 def Project4():
     print("Welecom to Sequential Circuits Sim !!\n")
 
-    print("Please Enter the sequential benchmark file\n")
-    SeqCircuit = SeqBenchmark("seqBench")
+    print("Please Enter the sequential benchmark file:\n")
+    SeqCircuit = SeqBenchmark("c432.bench")
+
     SeqCircuit = netRead(SeqCircuit)
+    inputNum = SeqCircuit['INPUT_WIDTH'][1]
 
-    testVector = TestVectorInput()
+    print("\nPlease Enter a Test Vector t in integer (Press enter to select the deafult: t=0): \n")
+    testVector = input()
+    if testVector =="":
+        testVector = 0
+    else:
+        testVector = int(testVector)
 
-# -------------------------------------------------------------------------------------------------------------------- #
-# FUNCTION: function takes and return the test vector
-def TestVectorInput():
-    print("Please Enter a Test Vector\n")
-    while True:
-        tv = input()
-        if tv is isnumeric():
-            return tv
-        else:
-           print("Please Enter a number!!")
+    print("\nPlease Enter Numbers of cycles (Press enter to select the deafult: stuck-at-0): \n")
+    fault_f = input()
+    if fault_f == "":
+        fault_f = SeqCircuit['FAULTS'][1][0]
+
+    print("\n")
+
+
+
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # FUNCTION: function takes and return the seq circuit bennchmark file.
 def SeqBenchmark(defFile):
+    # Used for file access
+    script_dir = os.path.dirname(__file__)  # <-- absolute dir the script is in
+
     # Select circuit benchmark file, default is circuit.bench
     while True:
         cktFile = defFile
@@ -831,11 +840,11 @@ def SeqBenchmark(defFile):
         if userInput == "":
             return defFile
         else:
-            cktFile = os.path.join(defFile, userInput)
+            cktFile = os.path.join(script_dir, userInput)
             if not os.path.isfile(cktFile):
                 print("File does not exist. \n")
             else:
-                return defFile
+                return userInput
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # FUNCTION: Main Function
