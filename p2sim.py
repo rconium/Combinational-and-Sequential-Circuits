@@ -798,6 +798,46 @@ def sa_Fault_Simulator(flist, circuit, line, newCircuit, output):
 
 
 # -------------------------------------------------------------------------------------------------------------------- #
+# FUNCTION: This fucntion is only related to project 4
+def Project4():
+    print("Welecom to Sequential Circuits Sim !!\n")
+
+    print("Please Enter the sequential benchmark file\n")
+    SeqCircuit = SeqBenchmark("seqBench")
+    SeqCircuit = netRead(SeqCircuit)
+
+    testVector = TestVectorInput()
+
+# -------------------------------------------------------------------------------------------------------------------- #
+# FUNCTION: function takes and return the test vector
+def TestVectorInput():
+    print("Please Enter a Test Vector\n")
+    while True:
+        tv = input()
+        if tv is isnumeric():
+            return tv
+        else:
+           print("Please Enter a number!!")
+
+
+# -------------------------------------------------------------------------------------------------------------------- #
+# FUNCTION: function takes and return the seq circuit bennchmark file.
+def SeqBenchmark(defFile):
+    # Select circuit benchmark file, default is circuit.bench
+    while True:
+        cktFile = defFile
+        print("Read circuit benchmark file: use " + defFile + "?" + " Enter to accept or type filename: ")
+        userInput = input()
+        if userInput == "":
+            return defFile
+        else:
+            cktFile = os.path.join(defFile, userInput)
+            if not os.path.isfile(cktFile):
+                print("File does not exist. \n")
+            else:
+                return defFile
+
+# -------------------------------------------------------------------------------------------------------------------- #
 # FUNCTION: Main Function
 def main():
     # **************************************************************************************************************** #
@@ -809,7 +849,8 @@ def main():
                             "\n1: Test Vector Generation" + \
                             "\n2: Fault Coverage Simulation" + \
                             "\n3: (extra credit) Avg Fault Coverage data generation" + \
-                            "\n4: Quit\n")
+                            "\n4: Sequential Circuits Sim" + \
+                            "\n5: Quit\n")
 
         try:
             selection = int(user_select)
@@ -1024,8 +1065,13 @@ def main():
 
         elif (selection == 3):
             print("(*Just give us extra credit, pls :)*) ")
+
         elif (selection == 4):
+            Project4();
+
+        elif (selection == 5):
             break
+
     csvFile = open("f_cvg_c432_b10s.csv", "w")
 
     tvA = []
