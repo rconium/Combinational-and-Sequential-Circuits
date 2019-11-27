@@ -803,7 +803,7 @@ def Project4():
     print("Welecom to Sequential Circuits Sim !!\n")
 
     print("Please Enter the sequential benchmark file:\n")
-    SeqCircuit = SeqBenchmark("c432.bench")
+    SeqCircuit = SeqBenchmark("f_adder.bench")
 
     SeqCircuit = netRead(SeqCircuit)
     inputNum = SeqCircuit['INPUT_WIDTH'][1]
@@ -815,6 +815,18 @@ def Project4():
     else:
         testVector = int(testVector)
         testVector = bindigits(testVector, inputNum)
+
+    print("\nPlease Enter Numbers of cycles (Press enter to select the deafult: n=5): \n")
+    n = input()
+    if n =="":
+        n = 5
+    else:
+        n = int(n)
+
+    inputRead(SeqCircuit, testVector)
+
+    for i in range(0,n):
+        basic_sim(SeqCircuit)
 
 
     print("\nPlease Enter Numbers of cycles (Press enter to select the deafult: stuck-at-0): \n")
