@@ -811,9 +811,11 @@ def Project4():
     print("\nPlease Enter a Test Vector t in integer (Press enter to select the deafult: t=0): \n")
     testVector = input()
     if testVector =="":
-        testVector = 0
+        testVector = testVector.zfill(inputNum)
     else:
         testVector = int(testVector)
+        testVector = bindigits(testVector, inputNum)
+
 
     print("\nPlease Enter Numbers of cycles (Press enter to select the deafult: stuck-at-0): \n")
     fault_f = input()
@@ -822,9 +824,13 @@ def Project4():
 
     print("\n")
 
+# -------------------------------------------------------------------------------------------------------------------- #
+# FUNCTION: Takes int and return bin
+def intToBin(intNum, inputNumb):
+    s = bin(intNum & int("1"*inputNumb, 2))[2:]
+    return ("{0:0>%s}" % (bits)).format(s)
 
-
-
+    
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # FUNCTION: function takes and return the seq circuit bennchmark file.
