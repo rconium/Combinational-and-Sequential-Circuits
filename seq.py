@@ -13,10 +13,8 @@ unnamedSA = []
 # 5. main: The main function
 
 # -------------------------------------------------------------------------------------------------------------------- #
-# dictionary to store all test vectors for each TV set
-TV_map = {}
-MAX_BATCH = 25
-dff_list = []
+# dictionary to store terminal for each dff
+dff_term_pair = {}
 
 # get the input size
 def get_input_size(circFile):
@@ -142,7 +140,11 @@ def netRead(netName):
         terms = ["wire_" + x for x in terms]
 
         # add the gate output wire to the circuit dictionary with the dest as the key
-        circuit[gateOut] = [logic, terms, False, 'U']
+        if (logic == "DFF"):
+            circuit[gateOut] = [logic, terms, True, 'U']
+            dff_term_pair[gateOut] = terms
+        else:
+            circuit[gateOut] = [logic, terms, False, 'U']
         print(gateOut)
         print(circuit[gateOut])
 
@@ -167,7 +169,7 @@ def netRead(netName):
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # FUNCTION: calculates the output value for each logic gate
-def gateCalc(circuit, node, cycle):
+def gateCalc(circuit, node):
     # terminal will contain all the input wires of this logic gate (node)
     terminals = list(circuit[node][1])
 
@@ -180,11 +182,6 @@ def gateCalc(circuit, node, cycle):
                     holdTheWire = list(circuit[term]).copy()  # copy the wire attributes before change
                     circuit[term][3] = unnamedSA[2]  # change bit value of wire
                     continue
-                
-    if cycle == 0:
-        dff_list.append("U")
-        circuit = copycircuit(circuit, holdTheWire)
-        return circuit
 
     # If the node is an Inverter gate output, solve and return the output
     if circuit[node][0] == "NOT":
@@ -301,7 +298,9 @@ def gateCalc(circuit, node, cycle):
         return circuit
     
     if circuit[node][0] == "DFF":
-        circuit[node][3] = dff_list[cycle - 1]
+        # take what was 'stored' in DFF as the output value to wire
+        circuit[node][3] = circuit[terminals[0]][3]
+        
         circuit = copycircuit(circuit, holdTheWire)
         return circuit
 
@@ -394,10 +393,13 @@ def inputRead(circuit, line):
 def basic_sim(circuit, n):
     # QUEUE and DEQUEUE
     # Creating a queue, using a list, containing all of the gates in the circuit
-    queue = list(circuit["GATES"][1])
+    queue = list(circuit["GATES"][1])   
     i = 1
+    # n_count = 0
+    last_gate = queue[-1]
+    print("Cycle " + str(n))
 
-    for cycle in range (0, n, 1):
+    while True:
         i -= 1
         # If there's no more things in queue, done
         if len(queue) == 0:
@@ -406,6 +408,14 @@ def basic_sim(circuit, n):
         # Remove the first element of the queue and assign it to a variable for us to use
         curr = queue[0]
         queue.remove(curr)
+        
+        print(curr)
+        print("\nCurrent gate information:")
+        print(circuit[curr])
+        
+        # print(circuit[circuit["OUTPUTS"][1][0]][2])
+        # print(circuit[circuit["OUTPUTS"][1][0]][3])
+        
 
         # initialize a flag, used to check if every terminal has been accessed
         term_has_value = True
@@ -415,13 +425,18 @@ def basic_sim(circuit, n):
             if not circuit[term][2]:
                 term_has_value = False
                 break
+        
+
 
         ##part2 skip this cuz this is a SA wire
         if circuit[curr][2] == True:
+            print("--------------------------------------------------------------------------------------------")
             continue
         if term_has_value:
             circuit[curr][2] = True
-            circuit = gateCalc(circuit, curr, cycle)
+            circuit = gateCalc(circuit, curr)
+            print("Post calculation information:")
+            print(circuit[curr])
             
             # ERROR Detection if LOGIC does not exist
             if isinstance(circuit, str):
@@ -437,6 +452,8 @@ def basic_sim(circuit, n):
         else:
             # If the terminals have not been accessed yet, append the current node at the end of the queue
             queue.append(curr)
+        
+        print("--------------------------------------------------------------------------------------------")
     global unnamedSA
     unnamedSA = []
     
@@ -480,8 +497,9 @@ def read_flist(flist_Input):
 def resetCircuit(circuit):
     for key in circuit:
         if (key[0:5] == "wire_"):
-            circuit[key][2] = False
-            circuit[key][3] = 'U'
+            if (circuit[key][0] != "DFF"):
+                circuit[key][2] = False
+                circuit[key][3] = 'U'
     return circuit
 
 # function that will loop through all faults and simulate SA faults <----------------
@@ -555,7 +573,10 @@ def main():
             else:
                 break
     circuit = netRead(cktFile)
-    # print(circuit)
+    # # print the first output wire in the list
+    # print(circuit["OUTPUTS"][1][0])
+    # # print the first output wire's output value
+    # print(circuit[circuit["OUTPUTS"][1][0]][3])
 
     while (True):
         t = input("\nEnter a TV: use 0? Enter to accept or type TV: ") or "0"
@@ -597,7 +618,6 @@ def main():
 
     
     print("\n ---> Now ready to simulate INPUT = " + t)
-    circuit = inputRead(circuit, t)
 
     # Empty the "good" output value for each TV
     output = ""
@@ -616,9 +636,21 @@ def main():
         return
 
     # simulate no faults circuit
-    circuit = basic_sim(circuit, n)
+    for cycle in range(0, n, 1):
+        circuit = inputRead(circuit, t)
+        circuit = basic_sim(circuit, cycle + 1)
+        print(circuit)
+        print("****************************************************************************************************************")
 
-    print(circuit)
+        # Update DFF storage
+        for dff_wire, term in dff_term_pair.items():
+            # save the input wire value to DFF storage
+            circuit[dff_wire][3] = circuit[term[0]][3]
+
+        # After each cycle is finished, reset the circuit
+        resetCircuit(circuit)
+
+    
 
     for y in circuit["OUTPUTS"][1]:
         if not circuit[y][2]:
