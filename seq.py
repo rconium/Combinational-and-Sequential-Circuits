@@ -728,11 +728,11 @@ def main():
     # simulate no faults circuit
     for cycle in range(0, n, 1):
         circuit = inputRead(circuit, t)
-        circuit = basic_sim(circuit, cycle + 1)
         print("Cycle " + str(cycle + 1) + " Simulation Result:")
-        print(circuit)
+        circuit = basic_sim(circuit, cycle + 1)
+        #print(circuit)
         print("****************************************************************************************************************")
-
+        
         # Update DFF storage
         for dff_wire, term in dff_term_pair.items():
             # save the input wire value to DFF storage
@@ -747,6 +747,7 @@ def main():
 
         # After each cycle is finished, reset the circuit
         resetCircuit(circuit)
+        input()
 
     # After each input line is finished, reset the circuit
     resetCircuit(circuit)
