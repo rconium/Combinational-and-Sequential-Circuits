@@ -674,12 +674,6 @@ def basic_sim(circuit):
                 print(circuit)
                 return circuit
 
-            # print("Progress: updating " + curr + " = " + circuit[curr][3] + " as the output of " + circuit[curr][0] + " for:")
-            # for term in circuit[curr][1]:
-            #    print(term + " = " + circuit[term][3])
-            # print("\nPress Enter to Continue...")
-            # input()
-
         else:
             # If the terminals have not been accessed yet, append the current node at the end of the queue
             queue.append(curr)

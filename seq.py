@@ -395,9 +395,10 @@ def basic_sim(circuit, n):
     # Creating a queue, using a list, containing all of the gates in the circuit
     queue = list(circuit["GATES"][1])   
     i = 1
-    # n_count = 0
-    last_gate = queue[-1]
-    print("Cycle " + str(n))
+
+    print("\n**********")
+    print("* Cycle " + str(n) + " *")
+    print("**********")
 
     while True:
         i -= 1
@@ -460,6 +461,82 @@ def basic_sim(circuit, n):
     
     return circuit
 
+# -------------------------------------------------------------------------------------------------------------------- #
+# FUNCTION: the actual simulation #
+def basic_sa_sim(circuit, n, f):
+    # QUEUE and DEQUEUE
+    # Creating a queue, using a list, containing all of the gates in the circuit
+    queue = list(circuit["GATES"][1])   
+    i = 1
+
+    sa = f.split("_")
+
+    print("\n**********")
+    print("* Cycle " + str(n) + " *")
+    print("**********")
+
+    while True:
+        i -= 1
+        # If there's no more things in queue, done
+        if len(queue) == 0:
+            break
+
+        # Remove the first element of the queue and assign it to a variable for us to use
+        curr = queue[0]
+        queue.remove(curr)
+        
+        print(curr)
+        print("\nCurrent gate information:")
+        print(circuit[curr])
+        
+        # print(circuit[circuit["OUTPUTS"][1][0]][2])
+        # print(circuit[circuit["OUTPUTS"][1][0]][3])
+        
+
+        # initialize a flag, used to check if every terminal has been accessed
+        term_has_value = True
+
+        # Check if the terminals have been accessed
+        for term in circuit[curr][1]:
+            if not circuit[term][2]:
+                term_has_value = False
+                break
+        
+
+
+        ##part2 skip this cuz this is a SA wire
+        if circuit[curr][2] == True:
+            print("--------------------------------------------------------------------------------------------")
+            continue
+        if term_has_value:
+            circuit[curr][2] = True
+            circuit = gateCalc(circuit, curr)
+            print("Post calculation information:")
+            print(circuit[curr])
+            
+            # ERROR Detection if LOGIC does not exist
+            if isinstance(circuit, str):
+                print(circuit)
+                return circuit
+
+            # print("Progress: updating " + curr + " = " + circuit[curr][3] + " as the output of " + circuit[curr][0] + " for:")
+            # for term in circuit[curr][1]:
+            #    print(term + " = " + circuit[term][3])
+            # print("\nPress Enter to Continue...")
+            # input()
+
+        else:
+            # If the terminals have not been accessed yet, append the current node at the end of the queue
+            queue.append(curr)
+        
+        print("--------------------------------------------------------------------------------------------")
+    global unnamedSA
+    unnamedSA = []
+    
+    
+    return circuit
+
+
 # this will update the circuit list will the fault found in the line passed into the function
 def readFaults(line, circuit):
     line = line.split("-")
@@ -503,50 +580,62 @@ def resetCircuit(circuit):
     return circuit
 
 # function that will loop through all faults and simulate SA faults <----------------
-def sa_Fault_Simulator(flist, circuit, line, newCircuit, output, cycle):
+def sa_Fault_Simulator(aFault, circuit, t, newCircuit, output, n):
     detectedFaults = []
     detectedouputs = []
     # simulate for each SA fault
     # line will have current TV #aFault will have current SA fault
-    for aFault in flist:
-        # print("\n ---> Now ready to simulate INPUT = " + line + "@" + aFault)
-        # circuit = newCircuit
-        circuit = inputRead(circuit, line)
+
+    SA_output = ""  # create a variable to hold the output of the SA fault
+
+    # print("\n ---> Now ready to simulate INPUT = " + line + "@" + aFault)
+    # circuit = newCircuit
+    for cycle in range(0, n, 1):
+        circuit = inputRead(circuit, t)
         if circuit == -1:
             print("INPUT ERROR: INSUFFICIENT BITS")
             # outputFile.write(" -> INPUT ERROR: INSUFFICIENT BITS" + "\n")
             # After each input line is finished, reset the netList
             circuit = newCircuit
             print("...move on to next input\n")
-            continue
+            return [detectedFaults, detectedouputs]
+
         elif circuit == -2:
             print("INPUT ERROR: INVALID INPUT VALUE/S")
             # outputFile.write(" -> INPUT ERROR: INVALID INPUT VALUE/S" + "\n")
             # After each input line is finished, reset the netList
             circuit = newCircuit
             print("...move on to next input\n")
-            continue
+            return [detectedFaults, detectedouputs]
+
         # simulate faults and calculate output
         circuit = readFaults(aFault, circuit)
-        circuit = basic_sim(circuit, cycle)
-        # print("\n *** Finished simulation - resulting circuit: \n")
-        # print(circuit)
-        SA_output = ""  # create a variable to hold the output of the SA fault
+        circuit = basic_sim(circuit, cycle + 1)
+        print("Cycle " + str(cycle + 1) + " Simulation Result:")
+        print(circuit)
+        print("****************************************************************************************************************")
+
+        # Update DFF storage
+        for dff_wire, term in dff_term_pair.items():
+            # save the input wire value to DFF storage
+            circuit[dff_wire][3] = circuit[term[0]][3]
+
         for y in circuit["OUTPUTS"][1]:
             if not circuit[y][2]:
                 SA_output = "NETLIST ERROR: OUTPUT LINE \"" + y + "\" NOT ACCESSED"
                 break
             SA_output = str(circuit[y][3]) + SA_output
 
-        # print("\n *** Summary of simulation: ")
-        # print(aFault+ " @" + line + " -> " + SA_output + " written into output file. \n")
-        # outputFile.write(aFault + " @" + line + " -> " + SA_output + "\n")
-        if output != SA_output:
-            detectedFaults.append(aFault)
-            detectedouputs.append(SA_output)
-        # After each input line is finished, reset the circuit
-        # print("\n *** Now resetting circuit back to unknowns... \n")
+        # After each cycle is finished, reset the circuit
         resetCircuit(circuit)
+    
+    print(("\ntv = " + t + " -> " + str(SA_output) + " (fault)\n"))
+    if output != SA_output:
+        detectedFaults.append(aFault)
+        detectedouputs.append(SA_output)
+    # After each input line is finished, reset the circuit
+    # print("\n *** Now resetting circuit back to unknowns... \n")
+    resetCircuit(circuit)
     return [detectedFaults, detectedouputs]
 
 # -------------------------------------------------------------------------------------------------------------------- #
@@ -635,10 +724,12 @@ def main():
         print("...move on to next input\n")
         return
 
+    print("-GOOD SIMULATION-")
     # simulate no faults circuit
     for cycle in range(0, n, 1):
         circuit = inputRead(circuit, t)
         circuit = basic_sim(circuit, cycle + 1)
+        print("Cycle " + str(cycle + 1) + " Simulation Result:")
         print(circuit)
         print("****************************************************************************************************************")
 
@@ -647,22 +738,44 @@ def main():
             # save the input wire value to DFF storage
             circuit[dff_wire][3] = circuit[term[0]][3]
 
+        for y in circuit["OUTPUTS"][1]:
+            if not circuit[y][2]:
+                output = "NETLIST ERROR: OUTPUT LINE \"" + y + "\" NOT ACCESSED"
+                break
+            output = str(circuit[y][3]) + output
+            # breakpoint()
+
         # After each cycle is finished, reset the circuit
         resetCircuit(circuit)
-
-    
-
-    for y in circuit["OUTPUTS"][1]:
-        if not circuit[y][2]:
-            output = "NETLIST ERROR: OUTPUT LINE \"" + y + "\" NOT ACCESSED"
-            break
-        output = str(circuit[y][3]) + output
-        # breakpoint()
 
     # After each input line is finished, reset the circuit
     resetCircuit(circuit)
 
+    # Update DFF storage
+    for dff_wire, term in dff_term_pair.items():
+        # save the input wire value to DFF storage
+        circuit[dff_wire][3] = "U"
 
+    first_input_line = circuit["INPUTS"][1][0].split("_")
+    default_SA = first_input_line[1] + "-SA-0"
+
+    f = input("\nEnter a single fault: use " + default_SA + "? Enter to accept or type a fault in the right format, i.e G0-SA-0 or G8-IN-G14-SA-0: ") or default_SA
+    print("-FAULT SIMULATION-")
+    current_TV_Detected_Faults = sa_Fault_Simulator(f, circuit, t, newCircuit, output, n)
+
+    print(("\ntv = " + t + " -> " + str(output) + " (good)\n"))
+
+    print("****************************SIMULATION RESULT****************************")
+    if not current_TV_Detected_Faults[0]:
+        print("Fault not detected!")
+    else:
+        print("Detected:\n")
+        print(current_TV_Detected_Faults[0][0] + ":  " + t + " -> " + current_TV_Detected_Faults[1][0] + "\n")
+        for i in range(0, len(output), 1):
+            if output[i] != current_TV_Detected_Faults[1][0][i]:
+                print("Detected in Cycle " + str(i + 1))
+
+    
 
 if __name__ == "__main__":
     main()
