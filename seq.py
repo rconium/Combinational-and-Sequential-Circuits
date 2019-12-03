@@ -775,6 +775,7 @@ def main():
         for i in range(0, len(output), 1):
             if output[i] != current_TV_Detected_Faults[1][0][i]:
                 print("Detected in Cycle " + str(i + 1))
+    input()
 
     
 
