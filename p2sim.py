@@ -181,23 +181,6 @@ def generate_TV(init_seed, inputName, outputNameList):
                 outputFile.write("".join(map(str, TV_bin)) + "\n")
                 
             TV_map[tv] = arr
-            # rec = vector_size - 1
-            # # increment seed by 1 to multiple counters with +1 seed for each counter and write to file
-            # for x in range(0, 255, 1):
-            #     for i in range(vector_size - 1, -1, -1):
-            #         if ((seed + (rec - i) + x - cap) <= 255):
-            #             TV[i] = seed + (rec - i) + x - cap
-            #         else:
-            #             TV[i] = 0
-            #             seed = 0
-            #             cap = x
-            #             rec = vector_size - 2
-
-            #     for i, val in enumerate(TV):
-            #         TV_bin[i] = "{0:b}".format(val).zfill(8)
-            #     arr.append("".join(map(str, TV_bin)))
-            #     outputFile.write("".join(map(str, TV_bin)) + "\n")
-            # TV_map[tv] = arr
         elif tv == "TV_D.txt":
             ctr = 1
             seed_hex = hex(init_seed).replace("0x", "")
@@ -280,7 +263,7 @@ def TV_gen():
 
     # Select circuit benchmark file, default is circuit.bench
     while True:
-        cktFile = "c432.bench"
+        cktFile = "c_s.bench"
         print("\n Read circuit benchmark file: use " + cktFile + "?" + " Enter to accept or type filename: ")
         userInput = input()
         if userInput == "":
@@ -691,12 +674,6 @@ def basic_sim(circuit):
                 print(circuit)
                 return circuit
 
-            # print("Progress: updating " + curr + " = " + circuit[curr][3] + " as the output of " + circuit[curr][0] + " for:")
-            # for term in circuit[curr][1]:
-            #    print(term + " = " + circuit[term][3])
-            # print("\nPress Enter to Continue...")
-            # input()
-
         else:
             # If the terminals have not been accessed yet, append the current node at the end of the queue
             queue.append(curr)
@@ -830,7 +807,7 @@ def main():
 
             # Select circuit benchmark file, default is circuit.bench
             while True:
-                cktFile = "c432.bench"
+                cktFile = "c_s.bench"
                 print("\n Read circuit benchmark file: use " + cktFile + "?" + " Enter to accept or type filename: ")
                 userInput = input()
                 if userInput == "":
@@ -1026,7 +1003,9 @@ def main():
             print("(*Just give us extra credit, pls :)*) ")
         elif (selection == 4):
             break
-    csvFile = open("f_cvg_c432_b10s.csv", "w")
+    cktFile = cktFile.split('.')
+    csv_name = "f_csv_" + cktFile[0] + "_b" + str(batch) + ".csv"
+    csvFile = open(csv_name, "w")
 
     tvA = []
     tvB = []
