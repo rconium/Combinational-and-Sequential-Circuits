@@ -748,7 +748,7 @@ def main():
         # After each cycle is finished, reset the circuit
         resetCircuit(circuit)
 
-    # After each input line is finished, reset the circuit
+    # reset the circuit
     resetCircuit(circuit)
 
     # Update DFF storage
