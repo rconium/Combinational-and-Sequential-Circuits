@@ -749,7 +749,7 @@ def main():
         resetCircuit(circuit)
         input()
 
-    # reset the circuit
+    # After each input line is finished, reset the circuit
     resetCircuit(circuit)
 
     # Update DFF storage
